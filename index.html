@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Face Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            height: 100%;
+        }
+        .content-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+            border-color: #4b6cb7;
+        }
+        .welcome-card {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+        }
+        .welcome-card:hover {
+            border-color: #ffffff;
+        }
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+            color: #4b6cb7;
+            transition: all 0.3s ease;
+        }
+        .content-card:hover .feature-icon {
+            transform: scale(1.1);
+            color: #182848;
+        }
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #182848;
+            margin-bottom: 1rem;
+        }
+        .feature-description {
+            color: #6c757d;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        .btn-feature {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-feature:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: white;
+        }
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.75rem 1.5rem;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+        .btn-logout:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transform: translateY(-2px);
+        }
+        .department-badge {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+        .role-badge {
+            background: #182848;
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-left: 1rem;
+        }
+        .card {
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .schedule-table th, .schedule-table td {
+            text-align: center;
+            vertical-align: middle;
+        }
+        .mark-attendance-btn {
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-user-check me-2"></i>
+                Face Attendance System
+            </a>
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('logout') }}" class="btn-logout">
+                    <i class="fas fa-sign-out-alt me-2"></i>
+                    Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Welcome Card -->
+        <div class="content-card welcome-card">
+            <h2>Welcome, {{ faculty_name }}!</h2>
+            <div class="department-badge">
+                Department of {{ department }}
+                {% if is_hod %}
+                <span class="role-badge">Head of Department</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="row g-4">
+            <!-- My Schedule Card -->
+            <div class="col-12 mb-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">My Schedule</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered schedule-table">
+                                <thead>
+                                    <tr>
+                                        <th>Day</th>
+                                        <th>Time Slot</th>
+                                        <th>Semester</th>
+                                        <th>Subject</th>
+                                        <th>Unit</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scheduleTableBody">
+                                    <!-- Schedule will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mark Attendance Card -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-camera fa-3x mb-3 text-primary"></i>
+                        <h5 class="card-title">Mark Attendance</h5>
+                        <p class="card-text">Take attendance using facial recognition</p>
+                        <a href="{{ url_for('mark_attendance_page') }}" class="btn btn-primary">Mark Attendance</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- View Attendance History Card -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-history fa-3x mb-3 text-success"></i>
+                        <h5 class="card-title">Attendance History</h5>
+                        <p class="card-text">View and manage attendance records</p>
+                        <a href="{{ url_for('attendance_history_page') }}" class="btn btn-success">View History</a>
+                    </div>
+                </div>
+            </div>
+
+            {% if is_hod %}
+            <!-- Manage Timetable Card (Only for HOD) -->
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <i class="fas fa-calendar-alt fa-3x mb-3 text-info"></i>
+                        <h5 class="card-title">Manage Timetable</h5>
+                        <p class="card-text">Create and manage department timetable</p>
+                        <a href="{{ url_for('manage_timetable') }}" class="btn btn-info">Manage Timetable</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Add this modal for marking attendance -->
+    <div class="modal fade" id="markAttendanceModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Mark Attendance</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <video id="video" width="640" height="480" style="display: none;"></video>
+                        <canvas id="canvas" width="640" height="480" style="display: none;"></canvas>
+                        <div id="videoContainer" class="position-relative" style="display: none;">
+                            <video id="liveVideo" width="640" height="480" autoplay playsinline></video>
+                            <div id="recognitionStatus" class="position-absolute top-0 start-0 m-2 p-2 bg-dark text-white rounded">
+                                Recognition Active
+                            </div>
+                        </div>
+                    </div>
+                    <div id="lectureInfo" class="mb-3">
+                        <!-- Lecture information will be displayed here -->
+                    </div>
+                    <div class="text-center">
+                        <button id="startCamera" class="btn btn-primary">Start Camera</button>
+                        <button id="startRecognition" class="btn btn-success" style="display: none;">Start Recognition</button>
+                        <button id="stopRecognition" class="btn btn-danger" style="display: none;">Stop Recognition</button>
+                    </div>
+                    <div id="recognizedStudents" class="mt-3">
+                        <div class="card">
+                            <div class="card-header bg-primary text-white">
+                                Recognized Students
+                            </div>
+                            <div class="card-body">
+                                <div id="recognitionLog" style="max-height: 300px; overflow-y: auto;">
+                                    <!-- Recognition results will be displayed here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Function to load faculty schedule
+        function loadFacultySchedule() {
+            fetch('/get-faculty-schedule')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const tableBody = document.getElementById('scheduleTableBody');
+                        tableBody.innerHTML = '';
+                        
+                        data.schedule.forEach(lecture => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${lecture.day}</td>
+                                <td>${lecture.time_slot}</td>
+                                <td>${lecture.semester}</td>
+                                <td>${lecture.subject}</td>
+                                <td>${lecture.unit}</td>
+                                <td>
+                                    <button class="btn btn-primary btn-sm mark-attendance-btn"
+                                            onclick="openAttendanceModal('${lecture.semester}', '${lecture.subject}', '${lecture.unit}')">
+                                        Mark Attendance
+                                    </button>
+                                </td>
+                            `;
+                            tableBody.appendChild(row);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error loading schedule:', error));
+        }
+
+        // Function to open attendance modal with pre-filled details
+        function openAttendanceModal(semester, subject, unit) {
+            const modal = new bootstrap.Modal(document.getElementById('markAttendanceModal'));
+            document.getElementById('lectureInfo').innerHTML = `
+                <p><strong>Semester:</strong> ${semester}</p>
+                <p><strong>Subject:</strong> ${subject}</p>
+                <p><strong>Unit:</strong> ${unit}</p>
+            `;
+            modal.show();
+        }
+
+        let videoStream = null;
+        let recognitionInterval = null;
+        let isRecognitionActive = false;
+        let recognizedSet = new Set(); // To track unique students
+
+        const video = document.getElementById('liveVideo');
+        const canvas = document.getElementById('canvas');
+        const videoContainer = document.getElementById('videoContainer');
+        const startCameraBtn = document.getElementById('startCamera');
+        const startRecognitionBtn = document.getElementById('startRecognition');
+        const stopRecognitionBtn = document.getElementById('stopRecognition');
+        const recognitionLog = document.getElementById('recognitionLog');
+
+        async function startCamera() {
+            try {
+                videoStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = videoStream;
+                videoContainer.style.display = 'block';
+                startCameraBtn.style.display = 'none';
+                startRecognitionBtn.style.display = 'inline-block';
+            } catch (err) {
+                console.error('Error accessing camera:', err);
+                alert('Error accessing camera. Please check camera permissions.');
+            }
+        }
+
+        function captureAndRecognize() {
+            if (!isRecognitionActive) return;
+
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg');
+
+            // Get lecture details
+            const lectureInfo = document.getElementById('lectureInfo').textContent;
+            const semester = lectureInfo.match(/Semester: (.*)/)[1].trim();
+            const subject = lectureInfo.match(/Subject: (.*)/)[1].trim();
+            const unit = lectureInfo.match(/Unit: (.*)/)[1].trim();
+
+            // Send to server for recognition
+            fetch('/mark-attendance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    image: imageData,
+                    date: new Date().toISOString().split('T')[0],
+                    time: new Date().toTimeString().split(' ')[0],
+                    department: '{{ department }}',
+                    faculty: '{{ faculty_name }}',
+                    semester: semester,
+                    subject: subject,
+                    unit: unit
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.recognized_students) {
+                    data.recognized_students.forEach(student => {
+                        if (!recognizedSet.has(student.enrollment_number)) {
+                            recognizedSet.add(student.enrollment_number);
+                            const timestamp = new Date().toLocaleTimeString();
+                            const logEntry = document.createElement('div');
+                            logEntry.className = 'alert alert-success mb-2';
+                            logEntry.innerHTML = `
+                                <small class="text-muted">${timestamp}</small><br>
+                                Recognized: ${student.name} (${student.enrollment_number})
+                            `;
+                            recognitionLog.insertBefore(logEntry, recognitionLog.firstChild);
+                        }
+                    });
+                }
+            })
+            .catch(error => console.error('Recognition error:', error));
+        }
+
+        function startRecognition() {
+            isRecognitionActive = true;
+            recognizedSet.clear();
+            recognitionLog.innerHTML = '';
+            startRecognitionBtn.style.display = 'none';
+            stopRecognitionBtn.style.display = 'inline-block';
+            recognitionInterval = setInterval(captureAndRecognize, 2000); // Capture every 2 seconds
+        }
+
+        function stopRecognition() {
+            isRecognitionActive = false;
+            clearInterval(recognitionInterval);
+            startRecognitionBtn.style.display = 'inline-block';
+            stopRecognitionBtn.style.display = 'none';
+        }
+
+        // Event Listeners
+        startCameraBtn.addEventListener('click', startCamera);
+        startRecognitionBtn.addEventListener('click', startRecognition);
+        stopRecognitionBtn.addEventListener('click', stopRecognition);
+
+        // Clean up when modal is closed
+        document.getElementById('markAttendanceModal').addEventListener('hidden.bs.modal', () => {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+                videoStream = null;
+            }
+            if (recognitionInterval) {
+                clearInterval(recognitionInterval);
+            }
+            isRecognitionActive = false;
+            recognizedSet.clear();
+            videoContainer.style.display = 'none';
+            startCameraBtn.style.display = 'inline-block';
+            startRecognitionBtn.style.display = 'none';
+            stopRecognitionBtn.style.display = 'none';
+            recognitionLog.innerHTML = '';
+        });
+
+        // Load schedule when page loads
+        document.addEventListener('DOMContentLoaded', loadFacultySchedule);
+    </script>
+</body>
+</html>

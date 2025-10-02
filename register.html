@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Students</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4b6cb7;
+            --secondary-color: #182848;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            color: var(--secondary-color);
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            padding: 0.75rem 1.5rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        #video {
+            width: 100%;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .student-row {
+            background-color: white;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .student-row:hover {
+            background-color: #f8f9fa;
+        }
+
+        .photo-status {
+            font-weight: bold;
+        }
+
+        .photo-status.pending {
+            color: #dc3545;
+        }
+
+        .photo-status.completed {
+            color: #198754;
+        }
+
+        .nav-tabs .nav-link.active {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--secondary-color);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <h1><i class="fas fa-user-plus me-2"></i>Register Students</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <ul class="nav nav-tabs mb-4" id="registerTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details" type="button" role="tab">
+                    <i class="fas fa-list me-2"></i>Student Details
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="photos-tab" data-bs-toggle="tab" data-bs-target="#photos" type="button" role="tab">
+                    <i class="fas fa-camera me-2"></i>Capture Photos
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content" id="registerTabsContent">
+            <!-- Student Details Tab -->
+            <div class="tab-pane fade show active" id="details" role="tabpanel">
+                <!-- Excel Upload Section -->
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="fas fa-file-excel me-2"></i>Import Students from Excel</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="excelUploadForm" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label class="form-label">Upload Excel File</label>
+                                <input type="file" class="form-control" name="file" accept=".xls,.xlsx" required>
+                            </div>
+                            <div class="mb-3">
+                                <h6>Excel File Format Requirements:</h6>
+                                <ul>
+                                    <li>Required columns: Name, Enrollment Number, Semester, Group, Gender, Category, Mobile Number</li>
+                                    <li>Semester format: Semester 1, Semester 2, etc.</li>
+                                    <li>Group format: PCB, PCM, PMC, etc.</li>
+                                    <li>Gender format: Male, Female, Other</li>
+                                    <li>Category format: General, OBC, SC, ST, EWS</li>
+                                </ul>
+                                <a href="#" id="downloadTemplate" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-download me-2"></i>Download Template
+                                </a>
+                            </div>
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-upload me-2"></i>Import Students
+                                </button>
+                            </div>
+                        </form>
+                        <div id="importResults" class="mt-3" style="display: none;">
+                            <h6>Import Results:</h6>
+                            <div id="importMessage" class="alert"></div>
+                            <div id="importErrors" class="alert alert-warning" style="display: none;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Existing Manual Registration Form -->
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0"><i class="fas fa-users me-2"></i>Add Student Details</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="studentDetailsForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Name</label>
+                                        <input type="text" class="form-control" name="name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Enrollment Number</label>
+                                        <input type="text" class="form-control" name="enrollment" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Semester</label>
+                                        <select class="form-select" name="semester" required>
+                                            <option value="">Select Semester</option>
+                                            {% for semester in semesters %}
+                                            <option value="{{ semester }}">{{ semester }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Group</label>
+                                        <select class="form-select" name="group" id="group" required>
+                                            <option value="">Select Group</option>
+                                            <option value="PCB">PCB (Physics-Major, Chemistry-Minor, Botany-Multi)</option>
+                                            <option value="PCM">PCM (Physics-Major, Chemistry-Minor, Mathematics-Multi)</option>
+                                            <option value="PMC">PMC (Physics-Major, Mathematics-Minor, Chemistry-Multi)</option>
+                                            <option value="PMS">PMS (Physics-Major, Mathematics-Minor, Statistics-Multi)</option>
+                                            <option value="BCP">BCP (Botany-Major, Chemistry-Minor, Physics-Multi)</option>
+                                            <option value="BCZ">BCZ (Botany-Major, Chemistry-Minor, Zoology-Multi)</option>
+                                            <option value="BZC">BZC (Botany-Major, Zoology-Minor, Chemistry-Multi)</option>
+                                            <option value="BZMi">BZMi (Botany-Major, Zoology-Minor, Microbiology-Multi)</option>
+                                            <option value="CBP">CBP (Chemistry-Major, Botany-Minor, Physics-Multi)</option>
+                                            <option value="CBZ">CBZ (Chemistry-Major, Botany-Minor, Zoology-Multi)</option>
+                                            <option value="CPM">CPM (Chemistry-Major, Physics-Minor, Mathematics-Multi)</option>
+                                            <option value="MiZB">MiZB (Microbiology-Major, Zoology-Minor, Botany-Multi)</option>
+                                            <option value="MPC">MPC (Mathematics-Major, Physics-Minor, Chemistry-Multi)</option>
+                                            <option value="MPS">MPS (Mathematics-Major, Physics-Minor, Statistics-Multi)</option>
+                                            <option value="SMP">SMP (Statistics-Major, Mathematics-Minor, Physics-Multi)</option>
+                                            <option value="ZBC">ZBC (Zoology-Major, Botany-Minor, Chemistry-Multi)</option>
+                                            <option value="ZBMi">ZBMi (Zoology-Major, Botany-Minor, Microbiology-Multi)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Major Subject</label>
+                                        <select class="form-select" name="major_subject" id="major_subject" required disabled>
+                                            <option value="">Major Subject</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Minor Subject</label>
+                                        <select class="form-select" name="minor_subject" id="minor_subject" required disabled>
+                                            <option value="">Minor Subject</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group mb-3">
+                                        <label class="form-label">Multi Subject</label>
+                                        <select class="form-select" name="multi_subject" id="multi_subject" required disabled>
+                                            <option value="">Multi Subject</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="text-end mt-3">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-2"></i>Add Student
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="mt-4">
+                            <h5><i class="fas fa-list me-2"></i>Added Students</h5>
+                            <div id="studentsList">
+                                <!-- Students will be listed here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Photo Capture Tab -->
+            <div class="tab-pane fade" id="photos" role="tabpanel">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="mb-0"><i class="fas fa-camera me-2"></i>Capture Student Photos</h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="studentSearch" placeholder="Search student by name...">
+                                    <button class="btn btn-primary" type="button" id="searchStudent">
+                                        <i class="fas fa-search me-2"></i>Search
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Registered Students</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Enrollment</th>
+                                                        <th>Semester</th>
+                                                        <th>Group</th>
+                                                        <th>Photo Status</th>
+                                                        <th>Action</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="registeredStudentsList">
+                                                    <!-- Students will be listed here -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div id="video-container">
+                                    <video id="video" playsinline autoplay></video>
+                                </div>
+                                <div class="text-center mb-4">
+                                    <button type="button" id="startCamera" class="btn btn-primary me-2">
+                                        <i class="fas fa-video me-2"></i>Start Camera
+                                    </button>
+                                    <button type="button" id="capturePhoto" class="btn btn-success me-2" disabled>
+                                        <i class="fas fa-camera me-2"></i>Capture Photo
+                                    </button>
+                                    <button type="button" id="stopCamera" class="btn btn-danger" disabled>
+                                        <i class="fas fa-video-slash me-2"></i>Stop Camera
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="current-student-info mb-3">
+                                    <h5>Selected Student:</h5>
+                                    <div id="currentStudentDetails">
+                                        No student selected
+                                    </div>
+                                </div>
+                                <div class="captured-photos mb-3">
+                                    <h5>Captured Photos:</h5>
+                                    <div id="photoPreview" class="d-flex flex-wrap gap-2">
+                                        <!-- Captured photos will be shown here -->
+                                    </div>
+                                </div>
+                                <div class="existing-photos mb-3">
+                                    <h5>Existing Photos:</h5>
+                                    <div id="existingPhotos" class="d-flex flex-wrap gap-2">
+                                        <!-- Existing photos will be shown here -->
+                                    </div>
+                                </div>
+                                <div class="text-end">
+                                    <button type="button" id="savePhotos" class="btn btn-primary" disabled>
+                                        <i class="fas fa-save me-2"></i>Save Photos
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let studentsData = [];
+        let currentStudentIndex = -1;
+        let capturedPhotos = [];
+        let stream = null;
+        let registeredStudents = [];
+
+        // Handle student details form submission
+        $('#studentDetailsForm').submit(function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const studentData = Object.fromEntries(formData.entries());
+            
+            studentsData.push({
+                ...studentData,
+                photoStatus: 'pending'
+            });
+            
+            updateStudentsList();
+            this.reset();
+        });
+
+        // Update the list of added students
+        function updateStudentsList() {
+            const list = $('#studentsList');
+            list.empty();
+            
+            studentsData.forEach((student, index) => {
+                list.append(`
+                    <div class="student-row d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>${student.name}</strong> (${student.enrollment})
+                            <br>
+                            <small>Semester: ${student.semester}, Group: ${student.group}</small>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="photo-status ${student.photoStatus === 'completed' ? 'completed' : 'pending'} me-3">
+                                ${student.photoStatus === 'completed' ? 
+                                    '<i class="fas fa-check-circle"></i> Photos Complete' : 
+                                    '<i class="fas fa-clock"></i> Photos Pending'}
+                            </span>
+                            <button class="btn btn-sm btn-danger" onclick="removeStudent(${index})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        // Remove student from the list
+        function removeStudent(index) {
+            studentsData.splice(index, 1);
+            updateStudentsList();
+        }
+
+        // Function to load registered students
+        async function loadRegisteredStudents() {
+            try {
+                const response = await fetch('/get-registered-students');
+                const data = await response.json();
+                if (data.success) {
+                    registeredStudents = data.students;
+                    updateRegisteredStudentsList();
+                }
+            } catch (error) {
+                console.error('Error loading registered students:', error);
+            }
+        }
+
+        // Function to update registered students list
+        function updateRegisteredStudentsList(searchTerm = '') {
+            const tbody = $('#registeredStudentsList');
+            tbody.empty();
+
+            const filteredStudents = searchTerm 
+                ? registeredStudents.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                : registeredStudents;
+
+            filteredStudents.forEach(student => {
+                tbody.append(`
+                    <tr>
+                        <td>${student.name}</td>
+                        <td>${student.enrollment_number}</td>
+                        <td>${student.semester}</td>
+                        <td>${student.group}</td>
+                        <td>
+                            <span class="badge ${student.has_photos ? 'bg-success' : 'bg-warning'}">
+                                ${student.has_photos ? 'Photos Added' : 'No Photos'}
+                            </span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-primary select-student" data-student-id="${student.id}">
+                                <i class="fas fa-user-edit"></i> Select
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        // Search functionality
+        $('#searchStudent').click(function() {
+            const searchTerm = $('#studentSearch').val();
+            updateRegisteredStudentsList(searchTerm);
+        });
+
+        $('#studentSearch').on('keyup', function(e) {
+            if (e.key === 'Enter') {
+                const searchTerm = $(this).val();
+                updateRegisteredStudentsList(searchTerm);
+            }
+        });
+
+        // Select student for photo capture
+        $(document).on('click', '.select-student', function() {
+            const studentId = $(this).data('student-id');
+            const student = registeredStudents.find(s => s.id === studentId);
+            
+            if (student) {
+                currentStudentIndex = studentId;
+                updateCurrentStudentDisplay(student);
+                capturedPhotos = [];
+                updatePhotoPreview();
+                updateExistingPhotos(student);
+                $('#savePhotos').prop('disabled', true);
+            }
+        });
+
+        // Function to update existing photos display
+        function updateExistingPhotos(student) {
+            const container = $('#existingPhotos');
+            container.empty();
+            
+            if (student.photos && student.photos.length > 0) {
+                student.photos.forEach((photo, index) => {
+                    container.append(`
+                        <div class="position-relative">
+                            <img src="data:image/jpeg;base64,${photo}" 
+                                 alt="Existing photo ${index + 1}" 
+                                 style="width: 120px; height: 90px; object-fit: cover; border-radius: 5px;">
+                            <div class="position-absolute bottom-0 start-0 bg-dark text-white px-2 py-1" 
+                                 style="border-radius: 0 5px 0 5px; font-size: 12px;">
+                                Photo ${index + 1}
+                            </div>
+                        </div>
+                    `);
+                });
+            } else {
+                container.html('<p class="text-muted">No existing photos</p>');
+            }
+        }
+
+        // Update current student display
+        function updateCurrentStudentDisplay(student) {
+            if (student) {
+                $('#currentStudentDetails').html(`
+                    <div class="alert alert-info">
+                        <strong>Name:</strong> ${student.name}<br>
+                        <strong>Enrollment:</strong> ${student.enrollment_number}<br>
+                        <strong>Semester:</strong> ${student.semester}<br>
+                        <strong>Group:</strong> ${student.group}<br>
+                        <strong>Photo Status:</strong> 
+                        <span class="badge ${student.has_photos ? 'bg-success' : 'bg-warning'}">
+                            ${student.has_photos ? 'Photos Added' : 'No Photos'}
+                        </span>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: ${(capturedPhotos.length / 3) * 100}%" 
+                             aria-valuenow="${capturedPhotos.length}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="3">
+                            ${capturedPhotos.length}/3 Photos
+                        </div>
+                    </div>
+                `);
+            } else {
+                $('#currentStudentDetails').html('<div class="alert alert-warning">No student selected</div>');
+            }
+        }
+
+        // Load registered students when switching to photos tab
+        $('#photos-tab').on('shown.bs.tab', function (e) {
+            loadRegisteredStudents();
+        });
+
+        // Camera handling functions
+        async function startCamera() {
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    } 
+                });
+                document.getElementById('video').srcObject = stream;
+                $('#startCamera').prop('disabled', true);
+                $('#capturePhoto').prop('disabled', false);
+                $('#stopCamera').prop('disabled', false);
+                
+                // Start with the first pending student
+                currentStudentIndex = studentsData.findIndex(s => s.photoStatus === 'pending');
+                if (currentStudentIndex !== -1) {
+                    updateCurrentStudentDisplay();
+                }
+            } catch (err) {
+                alert('Error accessing camera: ' + err.message);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                document.getElementById('video').srcObject = null;
+                $('#startCamera').prop('disabled', false);
+                $('#capturePhoto').prop('disabled', true);
+                $('#stopCamera').prop('disabled', true);
+            }
+        }
+
+        // Update photo preview
+        function updatePhotoPreview() {
+            const preview = $('#photoPreview');
+            preview.empty();
+            
+            capturedPhotos.forEach((photo, index) => {
+                preview.append(`
+                    <div class="position-relative">
+                        <img src="${photo}" alt="Captured photo" style="width: 120px; height: 90px; object-fit: cover; border-radius: 5px;">
+                        <button class="btn btn-sm btn-danger position-absolute top-0 end-0" 
+                                onclick="removePhoto(${index})">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `);
+            });
+        }
+
+        // Remove photo
+        function removePhoto(index) {
+            capturedPhotos.splice(index, 1);
+            updatePhotoPreview();
+            updateCurrentStudentDisplay();
+            $('#savePhotos').prop('disabled', true);
+        }
+
+        // Modify savePhotos click handler
+        $('#savePhotos').click(async function() {
+            if (currentStudentIndex === -1) {
+                alert('Please select a student first');
+                return;
+            }
+
+            try {
+                const response = await fetch('/update-student-photos', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        student_id: currentStudentIndex,
+                        images: capturedPhotos
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Photos updated successfully!');
+                    capturedPhotos = [];
+                    updatePhotoPreview();
+                    loadRegisteredStudents(); // Refresh the list
+                    $('#savePhotos').prop('disabled', true);
+                } else {
+                    alert('Error updating photos: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error saving photos: ' + error.message);
+            }
+        });
+
+        // Event listeners
+        $('#startCamera').click(startCamera);
+        $('#stopCamera').click(stopCamera);
+        
+        // Add capture photo functionality
+        $('#capturePhoto').click(function() {
+            if (capturedPhotos.length >= 3) {
+                alert('Maximum 3 photos allowed. Please save current photos first.');
+                return;
+            }
+
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            
+            // Flip the image horizontally if needed (mirror effect)
+            // context.scale(-1, 1);
+            // context.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+            
+            // Normal capture without flipping
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            const photoData = canvas.toDataURL('image/jpeg');
+            capturedPhotos.push(photoData);
+            
+            updatePhotoPreview();
+            updateCurrentStudentDisplay(registeredStudents.find(s => s.id === currentStudentIndex));
+            
+            if (capturedPhotos.length === 3) {
+                $('#savePhotos').prop('disabled', false);
+            }
+        });
+
+        // Clean up on page unload
+        window.onbeforeunload = function() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
+
+        // Subject mappings for groups
+        const GROUP_SUBJECTS = {
+            'PCB': { major: 'Physics', minor: 'Chemistry', multi: 'Botany' },
+            'PCM': { major: 'Physics', minor: 'Chemistry', multi: 'Mathematics' },
+            'PMC': { major: 'Physics', minor: 'Mathematics', multi: 'Chemistry' },
+            'PMS': { major: 'Physics', minor: 'Mathematics', multi: 'Statistics' },
+            'BCP': { major: 'Botany', minor: 'Chemistry', multi: 'Physics' },
+            'BCZ': { major: 'Botany', minor: 'Chemistry', multi: 'Zoology' },
+            'BZC': { major: 'Botany', minor: 'Zoology', multi: 'Chemistry' },
+            'BZMi': { major: 'Botany', minor: 'Zoology', multi: 'Microbiology' },
+            'CBP': { major: 'Chemistry', minor: 'Botany', multi: 'Physics' },
+            'CBZ': { major: 'Chemistry', minor: 'Botany', multi: 'Zoology' },
+            'CPM': { major: 'Chemistry', minor: 'Physics', multi: 'Mathematics' },
+            'MiZB': { major: 'Microbiology', minor: 'Zoology', multi: 'Botany' },
+            'MPC': { major: 'Mathematics', minor: 'Physics', multi: 'Chemistry' },
+            'MPS': { major: 'Mathematics', minor: 'Physics', multi: 'Statistics' },
+            'SMP': { major: 'Statistics', minor: 'Mathematics', multi: 'Physics' },
+            'ZBC': { major: 'Zoology', minor: 'Botany', multi: 'Chemistry' },
+            'ZBMi': { major: 'Zoology', minor: 'Botany', multi: 'Microbiology' }
+        };
+
+        // Update subject dropdowns when group changes
+        $('#group').change(function() {
+            const group = $(this).val();
+            const subjects = GROUP_SUBJECTS[group] || { major: '', minor: '', multi: '' };
+            
+            $('#major_subject').html('<option value="">Major Subject</option>')
+                .prop('disabled', !group);
+            if (subjects.major) {
+                $('#major_subject').append(`<option value="${subjects.major}" selected>${subjects.major}</option>`);
+            }
+
+            $('#minor_subject').html('<option value="">Minor Subject</option>')
+                .prop('disabled', !group);
+            if (subjects.minor) {
+                $('#minor_subject').append(`<option value="${subjects.minor}" selected>${subjects.minor}</option>`);
+            }
+
+            $('#multi_subject').html('<option value="">Multi Subject</option>')
+                .prop('disabled', !group);
+            if (subjects.multi) {
+                $('#multi_subject').append(`<option value="${subjects.multi}" selected>${subjects.multi}</option>`);
+            }
+        });
+
+        // Loading indicator functions
+        function showLoading(message) {
+            $('#importMessage').removeClass('alert-danger alert-success')
+                .addClass('alert-info')
+                .html(`<i class="fas fa-spinner fa-spin me-2"></i>${message}`)
+                .show();
+            $('#excelUploadForm button[type="submit"]').prop('disabled', true);
+        }
+
+        function hideLoading() {
+            $('#excelUploadForm button[type="submit"]').prop('disabled', false);
+        }
+
+        // Excel Upload Handling
+        $('#excelUploadForm').submit(function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const fileInput = this.querySelector('input[type="file"]');
+            
+            if (!fileInput.files.length) {
+                $('#importResults').show();
+                $('#importMessage').removeClass('alert-success').addClass('alert-danger')
+                    .text('Please select a file to upload');
+                return;
+            }
+
+            const file = fileInput.files[0];
+            if (!file.name.match(/\.(xls|xlsx)$/)) {
+                $('#importResults').show();
+                $('#importMessage').removeClass('alert-success').addClass('alert-danger')
+                    .text('Please upload an Excel file (.xls or .xlsx)');
+                return;
+            }
+            
+            $.ajax({
+                url: '/import-students-excel',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                beforeSend: function() {
+                    $('#importResults').show();
+                    showLoading('Importing students...');
+                },
+                success: function(response) {
+                    hideLoading();
+                    $('#importResults').show();
+                    
+                    if (response.success) {
+                        $('#importMessage').removeClass('alert-danger').addClass('alert-success')
+                            .html(`<i class="fas fa-check-circle me-2"></i>${response.message}`);
+                        
+                        if (response.errors && response.errors.length > 0) {
+                            $('#importErrors').show()
+                                .html('<strong>Warnings:</strong><br>' + response.errors.join('<br>'));
+                        } else {
+                            $('#importErrors').hide();
+                        }
+                        
+                        // Clear the file input
+                        fileInput.value = '';
+                        
+                        // Refresh the students list
+                        loadRegisteredStudents();
+                        
+                        // Switch to the photos tab after successful import
+                        setTimeout(() => {
+                            $('#photos-tab').tab('show');
+                        }, 1500);
+                    } else {
+                        $('#importMessage').removeClass('alert-success').addClass('alert-danger')
+                            .html(`<i class="fas fa-exclamation-circle me-2"></i>${response.message}`);
+                        $('#importErrors').hide();
+                    }
+                },
+                error: function(xhr, status, error) {
+                    hideLoading();
+                    $('#importResults').show();
+                    $('#importMessage').removeClass('alert-success').addClass('alert-danger')
+                        .html(`<i class="fas fa-exclamation-circle me-2"></i>Error uploading file: ${error}`);
+                    $('#importErrors').hide();
+                }
+            });
+        });
+
+        // Download Excel Template
+        $('#downloadTemplate').click(function(e) {
+            e.preventDefault();
+            
+            // Create a sample Excel file with more columns
+            const headers = [
+                'Name', 
+                'Enrollment Number', 
+                'Semester', 
+                'Group', 
+                'Gender', 
+                'Category',
+                'Mobile Number'
+            ];
+            
+            const sampleData = [
+                [
+                    'John Doe',
+                    '2023001',
+                    'Semester 1',
+                    'PCB',
+                    'Male',
+                    'General',
+                    '9876543210'
+                ],
+                [
+                    'Jane Smith',
+                    '2023002',
+                    'Semester 1',
+                    'PCM',
+                    'Female',
+                    'OBC',
+                    '9876543211'
+                ]
+            ];
+            
+            const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleData]);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Students');
+            
+            // Add column widths for better readability
+            const wscols = headers.map(() => ({ wch: 15 }));
+            ws['!cols'] = wscols;
+            
+            // Save the file
+            XLSX.writeFile(wb, 'student_registration_template.xlsx');
+        });
+    </script>
+</body>
+</html> 

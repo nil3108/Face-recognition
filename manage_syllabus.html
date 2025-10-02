@@ -1,0 +1,493 @@
+{% extends "admin_base.html" %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+    }
+    .syllabus-stats {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+    .syllabus-stats:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+    }
+    .stats-icon {
+        font-size: 2rem;
+        background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .stats-number {
+        font-size: 1.8rem;
+        font-weight: 600;
+        color: #182848;
+        margin: 0.5rem 0;
+    }
+    .stats-label {
+        color: #666;
+        margin: 0;
+    }
+    .dashboard-card {
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+        padding: 2rem;
+        margin-bottom: 2rem;
+        transition: all 0.3s ease;
+    }
+    .dashboard-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+    }
+    .card-header-custom {
+        background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+        color: white;
+        padding: 1.5rem;
+        border-radius: 20px 20px 0 0;
+        margin: -2rem -2rem 1.5rem -2rem;
+    }
+    .unit-container {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid #e9ecef;
+    }
+    .btn-gradient {
+        background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+        color: white;
+        border: none;
+        padding: 0.5rem 1.5rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        color: white;
+    }
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    .table thead th {
+        background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+        color: white;
+        border: none;
+        padding: 1rem;
+    }
+    .table td {
+        padding: 1rem;
+        vertical-align: middle;
+    }
+    .table tbody tr:hover {
+        background-color: #f8f9fa;
+    }
+    .back-button {
+        background: white;
+        color: #4b6cb7;
+        border: 2px solid #4b6cb7;
+        padding: 0.5rem 1.5rem;
+        border-radius: 10px;
+        transition: all 0.3s ease;
+    }
+    .back-button:hover {
+        background: #4b6cb7;
+        color: white;
+        transform: translateX(-5px);
+    }
+</style>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Syllabus Management</h2>
+        <a href="{{ url_for('admin_dashboard') }}" class="back-button">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="syllabus-stats">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div>
+                        <div class="stats-number">{{ syllabus_entries|length }}</div>
+                        <p class="stats-label">Total Subjects</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="syllabus-stats">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                    <div>
+                        <div class="stats-number">{{ departments|length }}</div>
+                        <p class="stats-label">Departments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="syllabus-stats">
+                <div class="d-flex align-items-center">
+                    <div class="stats-icon me-3">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div>
+                        <div class="stats-number">{{ semesters|length }}</div>
+                        <p class="stats-label">Semesters</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Syllabus Card -->
+    <div class="dashboard-card">
+        <div class="card-header-custom">
+            <h4 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add/Edit Syllabus</h4>
+        </div>
+        <form id="syllabusForm">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="department" class="form-label">Department</label>
+                        <select class="form-select" id="department" name="department" required>
+                            <option value="">Select Department</option>
+                            {% for department in departments %}
+                            <option value="{{ department }}">{{ department }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="semester" class="form-label">Semester</label>
+                        <select class="form-select" id="semester" name="semester" required>
+                            <option value="">Select Semester</option>
+                            {% for semester in semesters %}
+                            <option value="{{ semester }}">{{ semester }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label for="subject" class="form-label">Subject</label>
+                        <input type="text" class="form-control" id="subject" name="subject" required>
+                    </div>
+                </div>
+            </div>
+            <div class="unit-container">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <label class="form-label mb-0"><i class="fas fa-list-ol me-2"></i>Units</label>
+                    <button type="button" class="btn btn-gradient" onclick="addUnit()">
+                        <i class="fas fa-plus me-2"></i>Add Unit
+                    </button>
+                </div>
+                <div id="unitsContainer">
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control" name="units[]" placeholder="Enter unit name" required>
+                        <button type="button" class="btn btn-danger" onclick="removeUnit(this)">
+                            <i class="fas fa-trash me-1"></i>Remove
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-gradient">
+                <i class="fas fa-save me-2"></i>Save Syllabus
+            </button>
+        </form>
+    </div>
+
+    <!-- Current Syllabus Card -->
+    <div class="dashboard-card">
+        <div class="card-header-custom">
+            <h4 class="mb-0"><i class="fas fa-book me-2"></i>Current Syllabus</h4>
+        </div>
+        <div class="table-container">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Semester</th>
+                        <th>Subject</th>
+                        <th>Units</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="syllabusList">
+                    {% for entry in syllabus_entries %}
+                    <tr>
+                        <td>{{ entry.department }}</td>
+                        <td>{{ entry.semester }}</td>
+                        <td>{{ entry.subject }}</td>
+                        <td>{{ entry.units }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary me-2" onclick="editSyllabus({{ entry.id }}, '{{ entry.department }}', '{{ entry.semester }}', '{{ entry.subject }}', '{{ entry.units }}')">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteSyllabus({{ entry.id }})">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title" id="editModalLabel">Edit Syllabus</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="editSyllabusForm">
+                        <input type="hidden" id="editSyllabusId" name="syllabus_id">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Department</label>
+                                <input type="text" class="form-control" id="editDepartment" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Semester</label>
+                                <input type="text" class="form-control" id="editSemester" readonly>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Subject</label>
+                                <input type="text" class="form-control" id="editSubject" name="subject" required>
+                            </div>
+                        </div>
+                        <div class="unit-container">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <label class="form-label mb-0"><i class="fas fa-list-ol me-2"></i>Units</label>
+                                <button type="button" class="btn btn-gradient" onclick="addEditUnit()">
+                                    <i class="fas fa-plus me-2"></i>Add Unit
+                                </button>
+                            </div>
+                            <div id="editUnitsContainer">
+                                <!-- Units will be added here dynamically -->
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="updateSyllabus()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function addUnit() {
+    const container = document.getElementById('unitsContainer');
+    const unitDiv = document.createElement('div');
+    unitDiv.className = 'input-group mb-2';
+    unitDiv.innerHTML = `
+        <input type="text" class="form-control" name="units[]" placeholder="Enter unit name" required>
+        <button type="button" class="btn btn-danger" onclick="removeUnit(this)">
+            <i class="fas fa-trash me-1"></i>Remove
+        </button>
+    `;
+    container.appendChild(unitDiv);
+}
+
+function removeUnit(button) {
+    const unitDiv = button.parentElement;
+    if (document.getElementsByName('units[]').length > 1) {
+        unitDiv.remove();
+    }
+}
+
+document.getElementById('syllabusForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    try {
+        const response = await fetch('/admin/add-syllabus', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        alert(result.message);
+        if (result.success) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error saving syllabus');
+    }
+});
+
+async function deleteSyllabus(id) {
+    if (!confirm('Are you sure you want to delete this syllabus entry?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/delete-syllabus/${id}`, {
+            method: 'POST'
+        });
+        
+        const result = await response.json();
+        alert(result.message);
+        if (result.success) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error deleting syllabus');
+    }
+}
+
+// Load syllabus when department and semester are selected
+document.getElementById('department').addEventListener('change', loadSyllabus);
+document.getElementById('semester').addEventListener('change', loadSyllabus);
+
+async function loadSyllabus() {
+    const department = document.getElementById('department').value;
+    const semester = document.getElementById('semester').value;
+    
+    if (!department || !semester) return;
+    
+    try {
+        const response = await fetch(`/admin/get-syllabus/${department}/${semester}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update the syllabus list
+            const tbody = document.getElementById('syllabusList');
+            tbody.innerHTML = '';
+            
+            result.entries.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${department}</td>
+                    <td>${semester}</td>
+                    <td>${entry.subject}</td>
+                    <td>${entry.units.join(', ')}</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary me-2" onclick="editSyllabus(${entry.id}, '${department}', '${semester}', '${entry.subject}', '${entry.units.join(', ')}')">
+                            <i class="fas fa-edit me-1"></i>Edit
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="deleteSyllabus(${entry.id})">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+function editSyllabus(id, department, semester, subject, units) {
+    // Set form values
+    document.getElementById('editSyllabusId').value = id;
+    document.getElementById('editDepartment').value = department;
+    document.getElementById('editSemester').value = semester;
+    document.getElementById('editSubject').value = subject;
+    
+    // Clear existing units
+    const unitsContainer = document.getElementById('editUnitsContainer');
+    unitsContainer.innerHTML = '';
+    
+    // Add unit inputs
+    const unitsList = units.split(',');
+    unitsList.forEach(unit => {
+        addEditUnitWithValue(unit.trim());
+    });
+    
+    // Show modal
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+}
+
+function addEditUnit() {
+    const container = document.getElementById('editUnitsContainer');
+    const unitDiv = document.createElement('div');
+    unitDiv.className = 'input-group mb-2';
+    unitDiv.innerHTML = `
+        <input type="text" class="form-control" name="edit_units[]" placeholder="Enter unit name" required>
+        <button type="button" class="btn btn-danger" onclick="removeEditUnit(this)">
+            <i class="fas fa-trash me-1"></i>Remove
+        </button>
+    `;
+    container.appendChild(unitDiv);
+}
+
+function addEditUnitWithValue(value) {
+    const container = document.getElementById('editUnitsContainer');
+    const unitDiv = document.createElement('div');
+    unitDiv.className = 'input-group mb-2';
+    unitDiv.innerHTML = `
+        <input type="text" class="form-control" name="edit_units[]" value="${value}" placeholder="Enter unit name" required>
+        <button type="button" class="btn btn-danger" onclick="removeEditUnit(this)">
+            <i class="fas fa-trash me-1"></i>Remove
+        </button>
+    `;
+    container.appendChild(unitDiv);
+}
+
+function removeEditUnit(button) {
+    const unitDiv = button.parentElement;
+    if (document.getElementsByName('edit_units[]').length > 1) {
+        unitDiv.remove();
+    }
+}
+
+async function updateSyllabus() {
+    const id = document.getElementById('editSyllabusId').value;
+    const subject = document.getElementById('editSubject').value;
+    const units = Array.from(document.getElementsByName('edit_units[]')).map(input => input.value);
+    
+    try {
+        const response = await fetch(`/admin/update-syllabus/${id}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                subject: subject,
+                units: units
+            })
+        });
+        
+        const result = await response.json();
+        alert(result.message);
+        if (result.success) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error updating syllabus');
+    }
+}
+</script>
+{% endblock %} 

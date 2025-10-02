@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mark Attendance</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
+    <style>
+        :root {
+            --primary-color: #4b6cb7;
+            --secondary-color: #182848;
+            --background-color: #f5f7fa;
+            --text-color: #333;
+            --border-radius: 15px;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 1.5rem;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.12);
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
+            padding: 1.5rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+            color: var(--secondary-color);
+        }
+
+        .form-select, .form-control {
+            border-radius: 10px;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .form-select:focus, .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(75, 108, 183, 0.25);
+        }
+
+        .form-select:disabled {
+            background-color: #f8f9fa;
+            cursor: not-allowed;
+            border-color: #e9ecef;
+            color: #6c757d;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            margin: 0 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-success {
+            background: linear-gradient(90deg, #28a745, #218838);
+            border: none;
+        }
+
+        .btn-danger {
+            background: linear-gradient(90deg, #dc3545, #c82333);
+            border: none;
+        }
+
+        #video-container {
+            width: 100%;
+            max-width: 640px;
+            margin: 2rem auto;
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        #video {
+            width: 100%;
+            height: auto;
+            transform: scaleX(-1);
+            border-radius: var(--border-radius);
+        }
+
+        .faculty-info {
+            background: linear-gradient(135deg, rgba(75, 108, 183, 0.1) 0%, rgba(24, 40, 72, 0.1) 100%);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .faculty-info i {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
+        }
+
+        .faculty-name {
+            font-weight: 600;
+            color: var(--secondary-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .faculty-dept {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .status-message {
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: var(--border-radius);
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .nav-link {
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .nav-link.active {
+            color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .btn {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .form-group {
+                margin-bottom: 0.75rem;
+            }
+        }
+
+        .date-time-container {
+            background: linear-gradient(135deg, rgba(75, 108, 183, 0.05) 0%, rgba(24, 40, 72, 0.05) 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid rgba(75, 108, 183, 0.1);
+        }
+
+        .flatpickr-input {
+            background-color: white !important;
+        }
+
+        .flatpickr-input:disabled {
+            background-color: #f8f9fa !important;
+        }
+
+        .date-time-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .date-time-row {
+                flex-direction: column;
+            }
+        }
+
+        .current-datetime {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1><i class="fas fa-clipboard-check me-2"></i>Mark Attendance</h1>
+                <div class="text-end">
+                    <p class="mb-0"><i class="fas fa-user-circle me-2"></i>{{ faculty_name }}</p>
+                    <p class="mb-0"><i class="fas fa-building me-2"></i>{{ department }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-user-check me-2"></i>Attendance Details</h4>
+            </div>
+            <div class="card-body">
+                <div class="faculty-info">
+                    <div class="faculty-name">
+                        <i class="fas fa-user-tie"></i>{{ faculty_name }}
+                    </div>
+                    <div class="faculty-dept">
+                        <i class="fas fa-university"></i>Department of {{ department }}
+                    </div>
+                </div>
+
+                <form id="attendanceForm">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="department" class="form-label">
+                                    <i class="fas fa-building me-2"></i>Department
+                                </label>
+                                <input type="text" class="form-control" id="department" value="{{ department }}" readonly>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="semester" class="form-label">
+                                    <i class="fas fa-calendar-alt me-2"></i>Semester
+                                </label>
+                                <select class="form-select" id="semester" required>
+                                    <option value="">Select Semester</option>
+                                    {% for semester in semesters %}
+                                    <option value="{{ semester }}">{{ semester }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="subject" class="form-label">
+                                    <i class="fas fa-book me-2"></i>Subject
+                                </label>
+                                <select class="form-select" id="subject" required>
+                                    <option value="">Select Subject</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="unit" class="form-label">
+                                    <i class="fas fa-bookmark me-2"></i>Unit
+                                </label>
+                                <select class="form-select" id="unit" required>
+                                    <option value="">Select Unit</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="faculty" class="form-label">
+                                    <i class="fas fa-chalkboard-teacher me-2"></i>Faculty
+                                </label>
+                                <select class="form-select" id="faculty" disabled>
+                                    <option value="{{ faculty_name }}" selected>{{ faculty_name }}</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="date-time-container">
+                        <h5 class="mb-3">
+                            <i class="fas fa-clock me-2"></i>Lecture Date & Time
+                        </h5>
+                        <div class="date-time-row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="lectureDate" class="form-label">
+                                        <i class="fas fa-calendar me-2"></i>Date
+                                    </label>
+                                    <input type="text" class="form-control" id="lectureDate" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="lectureTime" class="form-label">
+                                        <i class="fas fa-clock me-2"></i>Time
+                                    </label>
+                                    <input type="text" class="form-control" id="lectureTime" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="current-datetime text-center">
+                            Current: <span id="currentDateTime"></span>
+                        </div>
+                    </div>
+
+                    <div id="video-container">
+                        <video id="video" playsinline autoplay></video>
+                    </div>
+
+                    <div class="text-center">
+                        <button type="button" id="startCamera" class="btn btn-primary">
+                            <i class="fas fa-camera me-2"></i>Start Camera
+                        </button>
+                        <button type="button" id="markAttendance" class="btn btn-success" disabled>
+                            <i class="fas fa-play me-2"></i>Start Marking
+                        </button>
+                        <button type="button" id="stopMarking" class="btn btn-warning" disabled>
+                            <i class="fas fa-pause me-2"></i>Stop Marking
+                        </button>
+                        <button type="button" id="stopCamera" class="btn btn-danger" disabled>
+                            <i class="fas fa-stop me-2"></i>Stop Camera
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Export Card -->
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-file-export me-2"></i>Export Attendance Records</h4>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <p class="mb-0">
+                            <i class="fas fa-info-circle me-2 text-primary"></i>
+                            Export attendance records for <strong>{{ department }}</strong> department in Excel format.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button type="button" id="exportAttendance" class="btn btn-primary">
+                            <i class="fas fa-file-excel me-2"></i>Export to Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Absent Students Card -->
+        <div class="card" id="absentStudentsCard" style="display: none;">
+            <div class="card-header">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-times me-2"></i>Absent Students
+                    <span class="badge bg-danger rounded-pill ms-2" id="absentCount">0</span>
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info" role="alert">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Students who were not detected during the attendance session.
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Enrollment No.</th>
+                                <th>Name</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="absentStudentsList">
+                            <!-- Absent students will be listed here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-center mt-3">
+                    <button type="button" id="markMissedBtn" class="btn btn-warning" style="display: none;">
+                        <i class="fas fa-redo me-2"></i>Mark Missed Students
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="status" class="status-message" style="display: none;"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        let stream = null;
+        let isProcessing = false;
+        let isMarkingActive = false;
+        let markingInterval = null;
+        const processingInterval = 2000; // Process every 2 seconds
+        let presentStudents = new Set(); // Track present students
+        let allStudents = []; // Will store all students from the selected semester
+
+        function showStatus(message, type) {
+            const status = $('#status');
+            status.removeClass('success error')
+                  .addClass(type)
+                  .html(`<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>${message}`)
+                  .fadeIn();
+            
+            // Position the status message below the video container
+            const videoContainer = $('#video-container');
+            status.insertAfter(videoContainer);
+            
+            setTimeout(() => status.fadeOut(), 5000);
+        }
+
+        async function initializeCamera() {
+            try {
+                const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                const constraints = {
+                    video: {
+                        width: { ideal: 640 },
+                        height: { ideal: 480 },
+                        facingMode: isMobile ? "environment" : "user"
+                    }
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                const video = document.getElementById('video');
+                video.srcObject = stream;
+                await video.play();
+
+                $('#startCamera').prop('disabled', true);
+                $('#markAttendance').prop('disabled', false);
+                $('#stopCamera').prop('disabled', false);
+                showStatus('Camera started successfully', 'success');
+            } catch (error) {
+                if (error.name === 'NotAllowedError') {
+                    showStatus('Camera access denied. Please grant permission.', 'error');
+                } else if (error.name === 'NotFoundError') {
+                    showStatus('No camera found. Please check your device.', 'error');
+                } else {
+                    showStatus('Error accessing camera: ' + error.message, 'error');
+                }
+                console.error('Camera error:', error);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stopMarking(); // Make sure to stop marking when camera is stopped
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+                const video = document.getElementById('video');
+                video.srcObject = null;
+                $('#startCamera').prop('disabled', false);
+                $('#markAttendance').prop('disabled', true);
+                $('#stopMarking').prop('disabled', true);
+                $('#stopCamera').prop('disabled', true);
+                showStatus('Camera stopped', 'success');
+                
+                // Show absent students after stopping camera
+                showAbsentStudents();
+            }
+        }
+
+        function startMarking() {
+            if (!validateForm()) {
+                showStatus('Please fill in all required fields', 'error');
+                return;
+            }
+
+            isMarkingActive = true;
+            $('#markAttendance').prop('disabled', true);
+            $('#stopMarking').prop('disabled', false);
+            showStatus('✅ Started continuous attendance marking', 'success');
+
+            // Start continuous marking
+            markingInterval = setInterval(async () => {
+                if (!isProcessing && isMarkingActive) {
+                    await performAttendanceMarking();
+                }
+            }, processingInterval);
+        }
+
+        function stopMarking() {
+            isMarkingActive = false;
+            if (markingInterval) {
+                clearInterval(markingInterval);
+                markingInterval = null;
+            }
+            $('#markAttendance').prop('disabled', false);
+            $('#stopMarking').prop('disabled', true);
+            showStatus('Stopped attendance marking', 'success');
+        }
+
+        async function performAttendanceMarking() {
+            if (!stream || isProcessing) return;
+
+            isProcessing = true;
+
+            try {
+                const imageData = await captureImage();
+                const selectedDate = document.getElementById('lectureDate').value;
+                const selectedTime = document.getElementById('lectureTime').value;
+                
+                const data = {
+                    image: imageData,
+                    date: selectedDate,
+                    time: selectedTime,
+                    semester: $('#semester').val(),
+                    department: '{{ department }}',
+                    faculty: $('#faculty').val(),
+                    subject: $('#subject').val(),
+                    unit: $('#unit').val()
+                };
+
+                const response = await fetch('/mark-attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus(`✅ ${result.message}`, 'success');
+                    // Add recognized students to the present set
+                    if (result.recognized_students) {
+                        result.recognized_students.forEach(student => {
+                            presentStudents.add(student.enrollment_number);
+                        });
+                    }
+                } else {
+                    showStatus(`❌ ${result.message}`, 'error');
+                }
+
+            } catch (error) {
+                showStatus('❌ Error marking attendance: ' + error.message, 'error');
+                console.error('Attendance error:', error);
+                stopMarking(); // Stop marking on error
+            } finally {
+                isProcessing = false;
+            }
+        }
+
+        async function captureImage() {
+            const video = document.getElementById('video');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0);
+            return canvas.toDataURL('image/jpeg', 0.8);
+        }
+
+        // Export attendance functionality
+        $('#exportAttendance').click(async function() {
+            const exportBtn = $(this);
+            const originalText = exportBtn.html();
+            
+            try {
+                // Show loading state
+                exportBtn.html('<i class="fas fa-spinner fa-spin me-2"></i>Exporting...').prop('disabled', true);
+                
+                const response = await fetch('/export-attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        department: '{{ department }}'
+                    })
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    showStatus(`✅ ${result.message}`, 'success');
+                    
+                    // If there's a file path in the response, trigger download
+                    if (result.file_path) {
+                        window.location.href = `/download/${encodeURIComponent(result.file_path)}`;
+                    }
+                } else {
+                    showStatus(`❌ ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showStatus('❌ Error exporting attendance: ' + error.message, 'error');
+                console.error('Export error:', error);
+            } finally {
+                // Restore button state
+                setTimeout(() => {
+                    exportBtn.html(originalText).prop('disabled', false);
+                }, 1000);
+            }
+        });
+
+        // Event listeners
+        $('#startCamera').click(initializeCamera);
+        $('#stopCamera').click(stopCamera);
+        $('#markAttendance').click(startMarking);
+        $('#stopMarking').click(stopMarking);
+
+        // Clean up on page unload
+        window.onbeforeunload = function() {
+            stopMarking(); // Stop marking when leaving the page
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Pre-fill and disable faculty field
+            const facultySelect = document.getElementById('faculty');
+            facultySelect.value = "{{ faculty_name }}";
+            facultySelect.disabled = true;
+        });
+
+        // Initialize date and time pickers
+        const currentDate = new Date();
+        
+        // Date picker configuration
+        const datePicker = flatpickr("#lectureDate", {
+            dateFormat: "Y-m-d",
+            defaultDate: currentDate,
+            maxDate: currentDate,
+            disableMobile: "true"
+        });
+
+        // Time picker configuration
+        const timePicker = flatpickr("#lectureTime", {
+            enableTime: true,
+            noCalendar: true,
+            dateFormat: "H:i",
+            defaultDate: currentDate,
+            minuteIncrement: 1,
+            time_24hr: true,
+            disableMobile: "true"
+        });
+
+        // Update current date time display
+        function updateCurrentDateTime() {
+            const now = new Date();
+            const formattedDateTime = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            document.getElementById('currentDateTime').textContent = formattedDateTime;
+        }
+
+        // Update current time every second
+        updateCurrentDateTime();
+        setInterval(updateCurrentDateTime, 1000);
+
+        // Add date and time fields to form validation
+        function validateForm() {
+            const form = document.getElementById('attendanceForm');
+            const selects = form.querySelectorAll('select:not([disabled])');
+            const dateInput = document.getElementById('lectureDate');
+            const timeInput = document.getElementById('lectureTime');
+            let isValid = true;
+
+            selects.forEach(select => {
+                if (!select.value) {
+                    isValid = false;
+                    select.classList.add('is-invalid');
+                } else {
+                    select.classList.remove('is-invalid');
+                    select.classList.add('is-valid');
+                }
+            });
+
+            [dateInput, timeInput].forEach(input => {
+                if (!input.value) {
+                    isValid = false;
+                    input.classList.add('is-invalid');
+                } else {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                }
+            });
+
+            return isValid;
+        }
+
+        // Add validation for form changes to stop marking if fields are changed
+        document.querySelectorAll('#attendanceForm select, #lectureDate, #lectureTime').forEach(element => {
+            element.addEventListener('change', function() {
+                if (isMarkingActive) {
+                    stopMarking();
+                    showStatus('Attendance marking stopped due to form changes', 'warning');
+                }
+                validateForm();
+            });
+        });
+
+        async function fetchSemesterStudents(semester) {
+            try {
+                const response = await fetch(`/get-semester-students/${semester}`);
+                const data = await response.json();
+                if (data.success) {
+                    allStudents = data.students;
+                    return true;
+                }
+                return false;
+            } catch (error) {
+                console.error('Error fetching students:', error);
+                return false;
+            }
+        }
+
+        async function showAbsentStudents() {
+            const semester = $('#semester').val();
+            if (!semester) return;
+
+            // Fetch all students if not already fetched
+            if (allStudents.length === 0) {
+                const success = await fetchSemesterStudents(semester);
+                if (!success) {
+                    showStatus('Failed to fetch student list', 'error');
+                    return;
+                }
+            }
+
+            // Calculate absent students
+            const absentStudents = allStudents.filter(student => 
+                !presentStudents.has(student.enrollment_number)
+            );
+
+            // Update absent count badge
+            $('#absentCount').text(absentStudents.length);
+
+            // Generate absent students list
+            const absentList = $('#absentStudentsList');
+            absentList.empty();
+
+            absentStudents.forEach(student => {
+                absentList.append(`
+                    <tr>
+                        <td>${student.enrollment_number}</td>
+                        <td>${student.name}</td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-success mark-present-btn"
+                                    data-student-id="${student.id}"
+                                    onclick="markStudentPresent('${student.id}')">
+                                <i class="fas fa-check me-1"></i>Mark Present
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+
+            // Show the absent students card and mark missed button if there are absent students
+            $('#absentStudentsCard').show();
+            $('#markMissedBtn').toggle(absentStudents.length > 0);
+        }
+
+        async function markStudentPresent(studentId) {
+            try {
+                const data = {
+                    student_id: studentId,
+                    date: $('#lectureDate').val(),
+                    time: $('#lectureTime').val(),
+                    semester: $('#semester').val(),
+                    department: '{{ department }}',
+                    faculty: $('#faculty').val(),
+                    subject: $('#subject').val(),
+                    unit: $('#unit').val()
+                };
+
+                const response = await fetch('/mark-student-present', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Add student to present list and update UI
+                    presentStudents.add(result.enrollment_number);
+                    showStatus(`✅ Marked ${result.name} as present`, 'success');
+                    showAbsentStudents(); // Refresh absent list
+                } else {
+                    showStatus(`❌ ${result.message}`, 'error');
+                }
+            } catch (error) {
+                showStatus('❌ Error marking student present: ' + error.message, 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // Add event listener for mark missed students button
+        $('#markMissedBtn').click(function() {
+            if (validateForm()) {
+                startMarking();
+            } else {
+                showStatus('Please fill in all required fields', 'error');
+            }
+        });
+
+        // Add semester change handler to reset student lists
+        $('#semester').change(function() {
+            presentStudents.clear();
+            allStudents = [];
+            $('#absentStudentsCard').hide();
+        });
+
+        // Load syllabus data function
+        async function loadSyllabusData() {
+            const department = '{{ department }}'; // Get department from template
+            const semester = document.getElementById('semester').value;
+            
+            if (!semester) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/get-syllabus-for-attendance/${department}/${semester}`);
+                const result = await response.json();
+                
+                const subjectSelect = document.getElementById('subject');
+                const unitSelect = document.getElementById('unit');
+                
+                // Clear existing options
+                subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+                unitSelect.innerHTML = '<option value="">Select Unit</option>';
+                
+                if (result.success && result.entries.length > 0) {
+                    // Store syllabus data globally
+                    window.syllabusData = result.entries;
+                    
+                    // Populate subjects
+                    result.entries.forEach(entry => {
+                        const option = document.createElement('option');
+                        option.value = entry.subject;
+                        option.textContent = entry.subject;
+                        subjectSelect.appendChild(option);
+                    });
+                } else {
+                    showStatus('No subjects found for the selected semester', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading syllabus:', error);
+                showStatus('Error loading subjects. Please try again.', 'error');
+            }
+        }
+
+        // Update units function
+        function updateUnits() {
+            const selectedSubject = document.getElementById('subject').value;
+            const unitSelect = document.getElementById('unit');
+            
+            // Clear existing options
+            unitSelect.innerHTML = '<option value="">Select Unit</option>';
+            
+            if (!selectedSubject || !window.syllabusData) {
+                return;
+            }
+            
+            // Find the selected subject's units
+            const subjectData = window.syllabusData.find(entry => entry.subject === selectedSubject);
+            if (subjectData) {
+                subjectData.units.forEach(unit => {
+                    const option = document.createElement('option');
+                    option.value = unit;
+                    option.textContent = unit;
+                    unitSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Add event listeners
+        $('#semester').on('change', loadSyllabusData);
+        $('#subject').on('change', updateUnits);
+
+        function updateSubjects(department) {
+            const subjectSelect = document.getElementById('subjectSelect');
+            subjectSelect.innerHTML = '<option value="">Select Subject</option>';
+            
+            if (department) {
+                fetch(`/get-department-subjects/${department}`)
+                    .then(response => response.json())
+                    .then(subjects => {
+                        subjects.forEach(subject => {
+                            const option = document.createElement('option');
+                            option.value = subject;
+                            option.textContent = subject;
+                            subjectSelect.appendChild(option);
+                        });
+                    });
+            }
+        }
+    </script>
+</body>
+</html> 

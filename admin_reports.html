@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Reports - Face Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .back-btn {
+            color: white !important;
+            border: 2px solid white;
+            border-radius: 30px;
+            padding: 0.5rem 2rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .back-btn:hover {
+            background-color: white;
+            color: #4b6cb7 !important;
+        }
+        .stats-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+        }
+        .stats-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #4b6cb7 0%, #182848 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .stats-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+        .stats-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4b6cb7;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chart-bar me-2"></i>
+                System Reports
+            </a>
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link back-btn">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="row">
+            <!-- Total Students -->
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-users stats-icon"></i>
+                    <div class="stats-title">Total Students</div>
+                    <div class="stats-value">{{ total_students }}</div>
+                </div>
+            </div>
+
+            <!-- Total Faculty -->
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-chalkboard-teacher stats-icon"></i>
+                    <div class="stats-title">Total Faculty</div>
+                    <div class="stats-value">{{ total_faculty }}</div>
+                </div>
+            </div>
+
+            <!-- Total Attendance Records -->
+            <div class="col-md-4">
+                <div class="stats-card">
+                    <i class="fas fa-clipboard-check stats-icon"></i>
+                    <div class="stats-title">Total Attendance Records</div>
+                    <div class="stats-value">{{ total_attendance }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Reports Section -->
+        <div class="content-card mt-4">
+            <h3 class="mb-4">Detailed Reports</h3>
+            <p class="text-muted">This section will be updated with detailed reports and analytics.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html> 

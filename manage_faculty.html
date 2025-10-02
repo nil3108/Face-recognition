@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Faculty - Face Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .navbar {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            padding: 1rem 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        .content-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 10px;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(90deg, #182848 0%, #4b6cb7 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        .table th {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            font-weight: 500;
+            border: none;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        .action-btn {
+            padding: 0.25rem 0.75rem;
+            border-radius: 5px;
+            margin: 0 0.25rem;
+        }
+        .back-btn {
+            color: white !important;
+            border: 2px solid white;
+            border-radius: 30px;
+            padding: 0.5rem 2rem;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .back-btn:hover {
+            background-color: white;
+            color: #4b6cb7 !important;
+        }
+        .modal-content {
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        .modal-header {
+            background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);
+            color: white;
+            border-radius: 20px 20px 0 0;
+        }
+        .modal-title {
+            font-weight: 600;
+        }
+        .form-control {
+            border-radius: 10px;
+            padding: 0.75rem;
+            border: 2px solid #e0e0e0;
+        }
+        .form-control:focus {
+            border-color: #4b6cb7;
+            box-shadow: 0 0 0 0.2rem rgba(75, 108, 183, 0.25);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-chalkboard-teacher me-2"></i>
+                Manage Faculty
+            </a>
+            <div class="d-flex align-items-center">
+                <a href="{{ url_for('admin_dashboard') }}" class="nav-link back-btn">
+                    <i class="fas fa-arrow-left me-2"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container py-5">
+        <div class="content-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">Faculty Members</h2>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFacultyModal">
+                    <i class="fas fa-plus me-2"></i>
+                    Add New Faculty
+                </button>
+            </div>
+
+            {% if faculty_members %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Department</th>
+                            <th>Email</th>
+                            <th>Username</th>
+                            <th>Role</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for faculty in faculty_members %}
+                        <tr>
+                            <td>{{ faculty.name }}</td>
+                            <td>{{ faculty.department }}</td>
+                            <td>{{ faculty.email }}</td>
+                            <td>{{ faculty.username }}</td>
+                            <td>
+                                <span class="badge {% if faculty.is_hod %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {% if faculty.is_hod %}HOD{% else %}Faculty{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-info action-btn" onclick="editFaculty('{{ faculty.id }}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn {% if faculty.is_hod %}btn-warning{% else %}btn-success{% endif %} action-btn" 
+                                        onclick="toggleHOD('{{ faculty.id }}', '{{ faculty.name }}', '{{ faculty.department }}')"
+                                        title="{% if faculty.is_hod %}Remove HOD Status{% else %}Make HOD{% endif %}">
+                                    <i class="fas {% if faculty.is_hod %}fa-user-minus{% else %}fa-user-tie{% endif %}"></i>
+                                </button>
+                                <button class="btn btn-danger action-btn" onclick="deleteFaculty('{{ faculty.id }}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-users-slash fa-3x mb-3 text-muted"></i>
+                <h4>No Faculty Members Found</h4>
+                <p class="text-muted">Click the button above to add your first faculty member.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Department HODs Section -->
+        <div class="content-card mt-4">
+            <h3 class="mb-4">Department HODs</h3>
+            <div class="row">
+                {% for department in departments %}
+                <div class="col-md-6 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ department }}</h5>
+                            <div id="hod-info-{{ department.replace(' ', '-') }}">
+                                Loading...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Faculty Modal -->
+    <div class="modal fade" id="addFacultyModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add New Faculty</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form action="{{ url_for('add_faculty') }}" method="POST">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <select class="form-select" name="department" required>
+                                <option value="">Select Department</option>
+                                {% for department in departments %}
+                                <option value="{{ department }}">{{ department }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Username</label>
+                            <input type="text" class="form-control" name="username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Add Faculty</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function editFaculty(facultyId) {
+            // Implement edit functionality
+            console.log('Edit faculty:', facultyId);
+        }
+
+        function deleteFaculty(facultyId) {
+            if (confirm('Are you sure you want to delete this faculty member?')) {
+                fetch(`/admin/delete-faculty/${facultyId}`, {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error deleting faculty member');
+                    }
+                });
+            }
+        }
+
+        function toggleHOD(facultyId, facultyName, department) {
+            const action = event.currentTarget.title;
+            if (confirm(`Are you sure you want to ${action} for ${facultyName}?`)) {
+                fetch(`/admin/toggle-hod/${facultyId}`, {
+                    method: 'POST',
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+        }
+
+        // Function to load HOD information for each department
+        function loadDepartmentHODs() {
+            document.querySelectorAll('[id^="hod-info-"]').forEach(element => {
+                const department = element.id.replace('hod-info-', '').replace(/-/g, ' ');
+                fetch(`/admin/get-department-hod/${encodeURIComponent(department)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            element.innerHTML = data.hod 
+                                ? `<p class="mb-0"><i class="fas fa-user-tie me-2"></i>${data.hod.name}</p>`
+                                : '<p class="text-muted mb-0"><i class="fas fa-exclamation-circle me-2"></i>No HOD assigned</p>';
+                        } else {
+                            element.innerHTML = '<p class="text-danger mb-0">Error loading HOD info</p>';
+                        }
+                    });
+            });
+        }
+
+        // Load HOD information when page loads
+        document.addEventListener('DOMContentLoaded', loadDepartmentHODs);
+    </script>
+</body>
+</html> 
